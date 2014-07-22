@@ -1,0 +1,137 @@
+Proceso Main	
+	Leer N_SERVER_MIN, N_SERVER_MAX, MAX_ESPERA
+	
+	N <- N_SERVER_MIN
+	PORC_TIPO_ESTATICO <- 0.8
+	T <- 0
+	MAX_ESPERA <- 100
+	Dimension TPS(REQ_MAX_SERVER * N_SERVER_MAX)
+	
+	Repetir
+		menor_salida <- MenorTPS(TPS, N)
+		
+		Si TPLL <= TPS(menor_salida) Entonces
+			
+			// LLegada Request
+			
+			// Avanzo T
+			T <- TPLL
+			
+			// EFNC
+			IA <- Intervalo_Arribos()
+			TPLL <- T + IA			
+			
+			// Arrepentimiento?
+			Rechaza <- Rechaza_Request(REQS)
+			
+			si no Rechaza Entonces
+				
+				// Actualizo el vector de estado
+				REQS <- REQS + 1
+				
+				ReqEsperando <- REQS - Requests_Atendiendose(TPS, N)
+				
+				si ReqEsperando > MAX_ESPERA Entonces
+					
+					si N < N_MAX_SERVIDOR Entonces
+						//Actualizo vector de estado
+						N <- N + 1
+						
+						// EFC
+						TiempoEncendido <- DemoraEncendido()
+						Para i <- 0 Hasta Minimo(ReqEsperando, REQ_MAX_SER)
+							libre <- Puesto_Libre(TPS, N)
+							SI AZAR(1) < PORC_TIPO_ESTATICO Entonces
+								TA <- TiempoAtencion_Estatico()
+							Sino
+								TA <- TiempoAtencion_Dinamico()
+							FinSi
+							TPS[libre] <- T + TA + TiempoEncendido
+						FinPara
+						
+					FinSi
+					
+				Sino
+					
+					// EFC
+					si REQS <= N * REQ_MAX_SER Entonces
+						libre <- Puesto_Libre(TPS, N)
+						
+						SI AZAR(1) < PORC_TIPO_ESTATICO Entonces
+							TA <- TiempoAtencion_Estatico()
+						Sino
+							TA <- TiempoAtencion_Dinamico()
+						FinSi
+						TPS[libre] <- T + TA
+					FinSi
+				FinSi
+			FinSi
+		Sino
+			// Salida Request
+			T <- TPS[menor_salida]
+			
+			// Actualizacion vector de estado
+			REQS <- REQS - 1
+			Si Servidor_Vacio(menor_salida) Entonces
+				N <- N - 1
+			FinSi
+			
+			// EFC
+			si REQS >= N * REQ_MAX_SERVER Entonces
+				SI AZAR(1) < PORC_TIPO_ESTATICO Entonces
+					TA <- TiempoAtencion_Estatico()
+				Sino
+					TA <- TiempoAtencion_Dinamico()
+				FinSi
+				
+				TPS[menor_salida] <- T + TA
+			Sino
+				TPS[menor_salida] <- H_V
+			FinSi
+			
+		FinSi
+	Hasta Que T <= TF
+	
+FinProceso
+
+Funcion SERV <- Servidor_Vacio(menor_salida) 
+	SERV <- 0
+FinFuncion
+
+funcion PL <- Puesto_Libre(TPS, N) 
+	// algoritmo de prioridades
+	PL <- 0
+FinFuncion
+
+Funcion Rechaza <- Rechaza_Request(REQS)
+	Rechaza <- REQS > (REQ_MAX_SERVER * N_SERVER_MAX + MAX_ENCOLADOS)
+FinFuncion
+
+Funcion Cantidad <- Requests_Atendiendose(TPS, N)
+	Cantidad <- 0
+FinFuncion
+
+Funcion Menor <- MenorTPS(TPS, N) 
+	Menor <- 0
+FinFuncion
+
+Funcion IA <- Intervalo_Arribos()
+	IA <- 0
+FinFuncion
+
+Funcion MIN <- Minimo(X1, X2)
+	MIN <- X
+FinFuncion
+
+Funcion TA <- TiempoAtencion_Estatico
+	
+FinFuncion
+
+Funcion TA <- TiempoAtencion_Dinamico
+	
+FinFuncion
+
+Funcion DE <- DemoraEncendido()
+	DE <- 0
+FinFuncion
+	
