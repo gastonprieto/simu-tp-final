@@ -1,17 +1,12 @@
 Proceso Main
-	N_REQ_EN_SISTEMA <- 0
 	Leer N_SERVER, REQ_MAX_SERVER, BUFFER_LOAD_BALANCER
+	Leer TIMEOUT
 	
 	MAXIMA_CONCURRENCIA <- N_SERVER * REQ_MAX_SERVER + BUFFER_LOAD_BALANCER
-	Dimension TPS(REQ_MAX_SERVER * N_SERVER)
 	Dimension ITO(N_SERVER)
+	Dimension TC(N_SERVER)
 	
 	Repetir
-		
-		menor_salida <- MenorTPS(TPS)
-		Si TPLL <= TPS(menor_salida) Entonces
-			// LLegada Request
-			
 			// Avanzo T
 			T <- TPLL
 			
@@ -20,49 +15,23 @@ Proceso Main
 			TPLL <- T + IA			
 			
 			// Arrepentimiento?
-			Rechaza <- Rechaza_Request(REQS)
+			Rechaza <- Rechaza_Request(TC)
 			
-			si no Rechaza Entonces
-				N_REQ_EN_SISTEMA <- N_REQ_EN_SISTEMA + 1
-				
-				ReqEsperando <- REQS - Requests_Atendiendose(TPS, N)
-				
-				si ReqEsperando > MAX_ESPERA Entonces
+			Si No Rechaza Entonces
 					
-					Para i <- 0 Hasta ReqEsperando
-						libre <- Puesto_Libre(TPS)
-						SI AZAR(1) < PORC_TIPO_ESTATICO Entonces
-							TA <- TiempoAtencion_Estatico()
-						Sino
-							TA <- TiempoAtencion_Dinamico()
-						FinSi
-						TPS[libre] <- T + TA
-					FinPara
-					
+				libre <- Puesto_Libre(TC)
+				Si T > TC[libre]
+					ITO[libre] <- ITO[libre] + T - TC[libre]
+					TC[libre] <- T //Asumo que despues se va a sumar un TA a TC[i]
 				FinSi
-			FinSi
-			
-		Sino //SALIDA
-			
-			T <- TPS[menor_salida]
-			
-			// Actualizacion vector de estado
-			REQS <- REQS - 1
-			
-			// EFC
-			si REQS >= MAXIMA_CONCURRENCIA Entonces
-				SI AZAR(1) < PORC_TIPO_ESTATICO Entonces
-					TA <- TiempoAtencion_Estatico()
+				
+				Si AZAR(1) < PORC_TIPO_ESTATICO Entonces
+					TC[libre] <- TiempoAtencion_Estatico() + TC[libre]
 				Sino
-					TA <- TiempoAtencion_Dinamico()
+					TC[libre] <- TiempoAtencion_Dinamico() + TC[libre]
 				FinSi
-				
-				TPS[menor_salida] <- T + TA
-			Sino
-				TPS[menor_salida] <- H_V
+					
 			FinSi
-		FinSi
-		
 	Hasta Que T <= TF
 	
 	//Calculo de Resultados
@@ -71,25 +40,24 @@ Proceso Main
 	
 FinProceso
 
-Funcion Menor <- MenorTPS(TPS)
-	Menor <- 0
-FinFuncion
+
+// Auxiliares
 
 Funcion IA <- Intervalo_Arribos()
 	IA <- 0
 FinFuncion
 
-Funcion Rechaza <- Rechaza_Request(REQS)
-	Rechaza <- REQS > (REQ_MAX_SERVER * N_SERVER + MAX_ENCOLADOS)
+Funcion Rechaza <- Rechaza_Request(TC)
+	Res <- TRUE
+	Para i <- 0 Hasta N_SERVER Con Paso paso Hacer
+		Res <- (TC[i] >= TIMEOUT) & Rechaza
+	Fin Para
+	Res <- Rechaza
 FinFuncion
 
 funcion PL <- Puesto_Libre(TPS)
 	// algoritmo round robin
 	PL <- 0
-FinFuncion
-
-Funcion Cantidad <- Requests_Atendiendose(TPS, N)
-	Cantidad <- 0
 FinFuncion
 
 Funcion TA <- TiempoAtencion_Estatico
