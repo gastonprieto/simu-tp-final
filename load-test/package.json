@@ -5,6 +5,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "phantomjs": "^1.9.7-15"
+    "phantomjs": "^1.9.7-15",
+    "line-reader": "^0.2.4"
   }
 }
