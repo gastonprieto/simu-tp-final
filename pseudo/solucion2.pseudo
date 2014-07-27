@@ -164,7 +164,15 @@ Funcion Rechaza <- Rechaza_Request(REQS)
 FinFuncion
 
 Funcion Cantidad <- Requests_Atendiendose(TPS, N)
-	Cantidad <- 0
+	ret <- 0
+	
+	Para i <- 0 Hasta N * REQ_MAX_SERVER Con Paso paso Hacer
+		Si TPS[i] <> H_V
+			ret <- ret + 1
+		FinSi
+	Fin Para
+	
+	Cantidad <- ret
 FinFuncion
 
 Funcion MIN <- MenorTPS(TPS, N)
