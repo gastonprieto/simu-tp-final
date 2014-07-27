@@ -84,7 +84,7 @@ Proceso Main
 			
 			// Actualizacion vector de estado
 			REQS <- REQS - 1
-			Si Servidor_Vacio(menor_salida) Entonces
+			Si Servidor_Vacio(menor_salida, TPS) Entonces
 				N <- N - 1
 				TiempoAcumuladoServidor[menor_salida] <- T - TiempoEncendidoServidor[menor_salida]
 			FinSi
@@ -129,8 +129,18 @@ Proceso Main
 	
 FinProceso
 
-Funcion SERV <- Servidor_Vacio(menor_salida) 
-	SERV <- 0
+Funcion SERV <- Servidor_Vacio(socket, TPS)
+	servidor <- socket / REQ_MAX_SERVER // division entera
+	ret <- Verdadero
+	i <- servidor * REQ_MAX_SERVER
+	max <- (servidor + 1) * REQ_MAX_SERVER
+	Mientras (i <  max) & ret Hacer
+		Si TPS[i] <> H_V
+			ret <- Falso
+		FinSi
+	Fin Mientras
+	
+	SERV <- ret
 FinFuncion
 
 funcion PL <- Puesto_Libre(TPS, N) 
