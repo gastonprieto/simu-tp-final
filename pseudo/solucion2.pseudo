@@ -119,14 +119,12 @@ Proceso Main
 	
 	PROM_COSTO <- CostoTotal / (TF/(60*60*24*30))
 	PORC_REQ_RECHAZADAS <- RequestRechazadas * 100 / RequestRecibidas
-	PROM_ESPERA <- (TiempoEsperaTotal-STA) / (RequestRecibidas - RequestRechazadas)
-	PROM_RESPUESTA <- (TiempoEsperaTotal-STA) / (RequestRecibidas - RequestRechazadas)
+	PROM_ESPERA <- (TiempoEsperaTotal - STA) / (RequestRecibidas - RequestRechazadas)
+	PROM_RESPUESTA <- (TiempoEsperaTotal - STA) / (RequestRecibidas - RequestRechazadas)
 	//Impresion de Resultados
 	
 	Mostrar N, N_MIN_SERVER, N_MAX_SERVER
 	Mostrar PROM_COSTO, PORC_REQ_RECHAZADAS, PROM_ESPERA, PROM_RESPUESTA
-	
-	
 FinProceso
 
 Funcion SERV <- Servidor_Vacio(socket, TPS)

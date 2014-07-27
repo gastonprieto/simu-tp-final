@@ -2,10 +2,12 @@ Proceso Main
 	Leer N_SERVER
 	Leer TIMEOUT
 	
-	Dimension ITO(N_SERVER)
+	Dimension STO(N_SERVER)
 	Dimension TC(N_SERVER)
 	
 	PROXIMO_TURNO <- 0
+	RequestRechazadas <- 0
+	RequestRecibidas <- 0
 	
 	Repetir
 			// Avanzo T
@@ -15,6 +17,8 @@ Proceso Main
 			IA <- Intervalo_Arribos()
 			TPLL <- T + IA			
 			
+			RequestRecibidas <- RequestRecibidas + 1
+			
 			// Arrepentimiento?
 			Rechaza <- Rechaza_Request(TC, T)
 			
@@ -22,7 +26,7 @@ Proceso Main
 					
 				libre <- Puesto_Libre(TC, T)
 				Si T > TC[libre]
-					ITO[libre] <- ITO[libre] + T - TC[libre]
+					STO[libre] <- STO[libre] + T - TC[libre]
 					TC[libre] <- T //Asumo que despues se va a sumar un TA a TC[i]
 				FinSi
 				
@@ -31,13 +35,27 @@ Proceso Main
 				Sino
 					TC[libre] <- TiempoAtencion_Dinamico() + TC[libre]
 				FinSi
-					
+				
+			Sino
+				RequestRechazadas <- RequestRechazadas + 1
 			FinSi
+			
 	Hasta Que T <= TF
 	
 	//Calculo de Resultados
 	
+	T_OCIOSO_TOTAL <- 0
+	Para i <- 0 Hasta N_SERVER Con Paso paso Hacer
+		T_OCIOSO_TOTAL <- STO[i]
+	Fin Para
+	
+	PORC_REQ_RECHAZADAS <- RequestRechazadas * 100 / RequestRecibidas
+	PORC_T_OCIOSO <- (T * N_SERVER) * 100/ T_OCIOSO_TOTAL
+	
 	//Impresion de Resultados
+	Escribir N
+	Escribir PORC_REQ_RECHAZADAS, PORC_T_OCIOSO
+	
 	
 FinProceso
 
