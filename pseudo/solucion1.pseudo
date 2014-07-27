@@ -7,7 +7,7 @@ Proceso Main
 	Dimension STO(N_SERVER * REQ_MAX_SER)
 	Dimension TC(N_SERVER * REQ_MAX_SER)
 	
-	PROXIMO_TURNO <- 0
+	TURNO <- 0
 	
 	Repetir
 			// Avanzo T
@@ -60,6 +60,7 @@ Proceso Main
 	Para i<-0 Hasta N_SERVER
 		PTO[i] <- PorcentajeTiempoOcioso(STO, TF, i)
 	Fin Para
+	
 	PORC_REQ_RECHAZADAS <- REQ_RECHAZADAS * 100 / NT
 	PROM_ESPERA <- STE / REQ_ESPERA
 	PROM_RESPUESTA <- STE / REQ_ATENDIDOS
@@ -68,7 +69,7 @@ Proceso Main
 	Imprimir "Servidores ", N_SERVER
 	Imprimir "Porc. Rechazados [%]", PORC_REQ_RECHAZADAS
 	PAra i<-0 hasta N_SERVER
-		Imprimir "Porc Tiempo Ocioso Servidor [%]", i, PTO_SERVER
+		Imprimir "Porc Tiempo Ocioso Servidor [%]", i, PTO_SERVER //creo que es PTO[i]
 	FinPara
 	Imprimir "Promedio Espera [mseg]", PROM_ESPERA
 	Imprimir "Promedio Respuesta [mseg]", PROM_ESPERA
@@ -82,37 +83,29 @@ Funcion IA <- Intervalo_Arribos()
 	IA <- 0
 FinFuncion
 
-Funcion Rechaza <- Rechaza_Request(TC)
-	Res <- TRUE
-	Para i <- 0 Hasta N_SERVER Con Paso paso Hacer
-		Res <- (TC[i] >= TIMEOUT) & Rechaza
-	Fin Para
-	Res <- Rechaza
-FinFuncion
-
 funcion PL <- Thread_a_asignar(TC)
 	// algoritmo round robin
-	ret <- -1
-	i <- PROXIMO_TURNO
-	Mientras ret = -1 Hacer
-		Si TC[i MOD N_SERVER] < TIMEOUT
-			ret <- i
-		FinSi
-		i <- i + 1
-	Fin Mientras
+	TURNO <- (TURNO + 1) MOD (N_SERVER * REQ_MAX_SER)
 	
-	PL <- ret
+	PL <- TURNO
 FinFuncion
 
-Funcion TA <- TiempoAtencion_Estatico
-	
+Funcion TA <- TiempoAtencion_Estatico()
+	TA <- exp((-(42766 / (Azar(1) + 35386))) ^ 7.9285)
 FinFuncion
 
-Funcion TA <- TiempoAtencion_Dinamico
+Funcion TA <- TiempoAtencion_Dinamico()
+	den <- (1 - Azar(1)) ^ 0.7364
 	
+	TA <- 30791 * (((1 / den) -1) ^ 0.379)
 FinFuncion
 
 Funcion PTO <- PorcentajeTiempoOcioso(STO, TF, i)
-	PTO <- 0
+	sum_prom_to <- 0
+	Para j<-0 Hasta REQ_MAX_SER
+		sum_prom_to <- STO[(i * REQ_MAX_SER) + j] * 100 / TF
+	Fin Para
+	
+	PTO <- sum_prom_to / REQ_MAX_SER
 FinFuncion
 	
