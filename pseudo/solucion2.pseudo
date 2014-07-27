@@ -157,8 +157,10 @@ Funcion Cantidad <- Requests_Atendiendose(TPS, N)
 	Cantidad <- 0
 FinFuncion
 
-Funcion Menor <- MenorTPS(TPS, N) 
-	Menor <- 0
+Funcion MIN <- MenorTPS(TPS, N)
+	Para i <- 0 Hasta N * REQ_MAX_SERVER - 1 Con Paso paso Hacer
+		MIN <- Minimo(TPS[i], TPS[i + 1])
+	Fin Para
 FinFuncion
 
 Funcion IA <- Intervalo_Arribos()
