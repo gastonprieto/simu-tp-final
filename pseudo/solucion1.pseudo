@@ -1,10 +1,87 @@
+Proceso Main
+	Leer N_SERVER
+	
+	definir  TIMEOUT como entero
+	definir REQ_MAX_SER como entero
+	
+	Dimension STO(N_SERVER * REQ_MAX_SER)
+	Dimension TC(N_SERVER * REQ_MAX_SER)
+	
+	TURNO <- 0
+	
+	Repetir
+		// Avanzo T
+		T <- TPLL
+		
+		// EFNC
+		IA <- Intervalo_Arribos()
+		TPLL <- T + IA			
+		
+		thread <- Thread_a_asignar(TC)
+		
+		si T >= TC[thread] Entonces
+			STO[thread] <- STO[thread] + T - TC[thread]
+			
+			si azar(1) < PORC_TIPO_ESTATICO entonces
+				TA <- TiempoAtencion_Estatico()
+			Sino
+				TA <- TiempoAtencion_Dinamico()
+			FinSi
+			TC[thread] <- TA + T
+			
+			STR <- STR + TC[thread] - T 
+			REQ_ATENDIDOS <- REQ_ATENDIDOS + 1
+		Sino
+			si TC[thread] - T > TIMEOUT
+				REQ_RECH = REQ_RECH + 1
+			Sino
+				si azar(1) < PORC_TIPO_ESTATICO entonces
+					TA <- TiempoAtencion_Estatico()
+				Sino
+					TA <- TiempoAtencion_Dinamico()
+				FinSi
+				
+				STE <- STE + TC[thread] - T
+				REQ_ESPERA <- REQ_ESPERA + 1
+				
+				TC[thread] <- TA + TC[thread]
+				
+				REQ_ATENDIDOS <- REQ_ATENDIDOS + 1
+				STR <- STR + TC[thread] - T
+			FinSi
+		FinSi
+		
+		NT <- NT + 1
+		
+	Mientras Que T <= TF
+	
+	//Calculo de Resultados
+	Dimension PTO(N_SERVER)
+	Para i<-0 Hasta N_SERVER
+		PTO[i] <- PorcentajeTiempoOcioso(STO, TF, i)
+	Fin Para
+	
+	PORC_REQ_RECHAZADAS <- REQ_RECHAZADAS * 100 / NT
+	PROM_ESPERA <- STE / REQ_ESPERA
+	PROM_RESPUESTA <- STE / REQ_ATENDIDOS
+	
+	//Impresion de Resultados
+	Imprimir "Servidores ", N_SERVER
+	Imprimir "Porc. Rechazados [%]", PORC_REQ_RECHAZADAS
+	PAra i<-0 hasta N_SERVER
+		Imprimir "Porc Tiempo Ocioso Servidor [%]", i, PTO_SERVER //creo que es PTO[i]
+	FinPara
+	Imprimir "Promedio Espera [mseg]", PROM_ESPERA
+	Imprimir "Promedio Respuesta [mseg]", PROM_ESPERA
+	
+FinProceso
 
 
 // Auxiliares
 
-Funcion IA <- Intervalo_Arribos()
-	IA <- 0
-FinFuncion
+SubProceso IA<-Intervalo_Arribos()
+	IA<-((1/(Azar(1)^3.07759))-1)^0.51182
+FinSubProceso
 
 funcion PL <- Thread_a_asignar(TC)
 	// algoritmo round robin
