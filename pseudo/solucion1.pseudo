@@ -16,11 +16,11 @@ Proceso Main
 			TPLL <- T + IA			
 			
 			// Arrepentimiento?
-			Rechaza <- Rechaza_Request(TC)
+			Rechaza <- Rechaza_Request(TC, T)
 			
 			Si No Rechaza Entonces
 					
-				libre <- Puesto_Libre(TC)
+				libre <- Puesto_Libre(TC, T)
 				Si T > TC[libre]
 					ITO[libre] <- ITO[libre] + T - TC[libre]
 					TC[libre] <- T //Asumo que despues se va a sumar un TA a TC[i]
@@ -48,20 +48,20 @@ Funcion IA <- Intervalo_Arribos()
 	IA <- 0
 FinFuncion
 
-Funcion Rechaza <- Rechaza_Request(TC)
+Funcion Rechaza <- Rechaza_Request(TC, T)
 	Res <- TRUE
 	Para i <- 0 Hasta N_SERVER Con Paso paso Hacer
-		Res <- (TC[i] >= TIMEOUT) & Rechaza
+		Res <- (TC[i] - T >= TIMEOUT) & Rechaza
 	Fin Para
 	Res <- Rechaza
 FinFuncion
 
-funcion PL <- Puesto_Libre(TC)
+funcion PL <- Puesto_Libre(TC, T)
 	// algoritmo round robin
 	ret <- -1
 	i <- PROXIMO_TURNO
 	Mientras ret = -1 Hacer
-		Si TC[i MOD N_SERVER] < TIMEOUT
+		Si (TC[i MOD N_SERVER] - T) < TIMEOUT
 			ret <- i
 		FinSi
 		i <- i + 1
@@ -71,9 +71,15 @@ funcion PL <- Puesto_Libre(TC)
 FinFuncion
 
 Funcion TA <- TiempoAtencion_Estatico
-	
+	TA <- exp((-(42766 / (Random() + 35386))) ^ 7.9285)
 FinFuncion
 
 Funcion TA <- TiempoAtencion_Dinamico
+	den <- (1 - Random()) ^ 0.7364
 	
+	TA <- 30791 * (((1 / den) -1) ^ 0.379)
+FinFuncion
+
+Funcion RET <- Random()
+	RET <- Azar(1000) / 1000
 FinFuncion

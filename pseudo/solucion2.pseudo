@@ -182,7 +182,7 @@ Funcion MIN <- MenorTPS(TPS, N)
 FinFuncion
 
 Funcion IA <- Intervalo_Arribos()
-	IA <- 0
+IA <- ((1/(Random() ^ 3.07759)) -1) ^ 0.51182
 FinFuncion
 
 Funcion MIN <- Minimo(X1, X2)
@@ -194,11 +194,13 @@ Funcion MIN <- Minimo(X1, X2)
 FinFuncion
 
 Funcion TA <- TiempoAtencion_Estatico
-	
+	TA <- exp((-(42766 / (Random() + 35386))) ^ 7.9285)
 FinFuncion
 
 Funcion TA <- TiempoAtencion_Dinamico
+	den <- (1 - Random()) ^ 0.7364
 	
+	TA <- 30791 * (((1 / den) -1) ^ 0.379)
 FinFuncion
 
 Funcion DE <- DemoraEncendido()
@@ -207,5 +209,9 @@ FinFuncion
 
 Funcion SERV <- ObtenerServidor(libre)
 	SERV <- libre / REQ_MAX_SERVER
+FinFuncion
+
+Funcion RET <- Random()
+	RET <- Azar(1000) / 1000
 FinFuncion
 	
