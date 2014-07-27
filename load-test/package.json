@@ -1,0 +1,11 @@
+{
+  "name": "load-test",
+  "version": "0.0.0",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "phantomjs": "^1.9.7-15",
+    "line-reader": "^0.2.4"
+  }
+}

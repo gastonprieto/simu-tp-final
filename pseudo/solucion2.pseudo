@@ -1,6 +1,9 @@
 Proceso Main	
 	Leer N_SERVER_MIN, N_SERVER_MAX, MAX_ESPERA
 	
+	Dimension TiempoAcumuladoServidor(N_SERVER_MAX)
+	Dimension TiempoEncendidoServidor(N_SERVER_MAX)
+	
 	N <- N_SERVER_MIN
 	PORC_TIPO_ESTATICO <- 0.8
 	T <- 0
@@ -23,6 +26,8 @@ Proceso Main
 			
 			// Arrepentimiento?
 			Rechaza <- Rechaza_Request(REQS)
+			
+			RequestRecibidas <- RequestRecibidas + 1
 			
 			si no Rechaza Entonces
 				
@@ -47,9 +52,13 @@ Proceso Main
 								TA <- TiempoAtencion_Dinamico()
 							FinSi
 							TPS[libre] <- T + TA + TiempoEncendido
+							STA <- STA + TA
 						FinPara
-						
+						CantidadEncendidos <- CantidadEncendidos + 1
+						NumeroServidor <- ObtenerServidor(libre)
+						TiempoEncendidoServidor[NumeroServidor] <- T
 					FinSi
+					SumLlegadas <- SumLlegadas + T
 					
 				Sino
 					
@@ -63,8 +72,11 @@ Proceso Main
 							TA <- TiempoAtencion_Dinamico()
 						FinSi
 						TPS[libre] <- T + TA
+						STA <- STA + TA
 					FinSi
 				FinSi
+			Sino
+				RequestRechazadas <- RequestRechazadas + 1
 			FinSi
 		Sino
 			// Salida Request
@@ -74,6 +86,7 @@ Proceso Main
 			REQS <- REQS - 1
 			Si Servidor_Vacio(menor_salida) Entonces
 				N <- N - 1
+				TiempoAcumuladoServidor[menor_salida] <- T - TiempoEncendidoServidor[menor_salida]
 			FinSi
 			
 			// EFC
@@ -83,14 +96,36 @@ Proceso Main
 				Sino
 					TA <- TiempoAtencion_Dinamico()
 				FinSi
-				
+				STA <- STA + TA
 				TPS[menor_salida] <- T + TA
 			Sino
 				TPS[menor_salida] <- H_V
 			FinSi
+			SumSalidas <- SumSalidas + T
 			
 		FinSi
 	Hasta Que T <= TF
+	
+	//Calculo de Resultados
+	
+	Para i <- 0 Hasta N_MAX_SERVER
+		Costo_Tiempo = Costo_Tiempo + TiempoAcumuladoServidor[i]/3600 * COSTO_TIEMPO
+	FinPara
+	
+	CostoTotal <- (CantidadEncendidos * COSTO_ENCENDIDO) + Costo_Tiempo
+	
+	TiempoEsperaTotal <- SumSalidas - SumLlegadas
+	
+	
+	PROM_COSTO <- CostoTotal / (TF/(60*60*24*30))
+	PORC_REQ_RECHAZADAS <- RequestRechazadas * 100 / RequestRecibidas
+	PROM_ESPERA <- (TiempoEsperaTotal-STA) / (RequestRecibidas - RequestRechazadas)
+	PROM_RESPUESTA <- (TiempoEsperaTotal-STA) / (RequestRecibidas - RequestRechazadas)
+	//Impresion de Resultados
+	
+	Mostrar N, N_MIN_SERVER, N_MAX_SERVER
+	Mostrar PROM_COSTO, PORC_REQ_RECHAZADAS, PROM_ESPERA, PROM_RESPUESTA
+	
 	
 FinProceso
 
@@ -148,5 +183,9 @@ FinFuncion
 
 Funcion DE <- DemoraEncendido()
 	DE <- 0
+FinFuncion
+
+Funcion SERV <- ObtenerServidor(libre)
+	SERV <- libre / REQ_MAX_SERVER
 FinFuncion
 	
