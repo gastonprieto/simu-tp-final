@@ -131,7 +131,11 @@ Funcion IA <- Intervalo_Arribos()
 FinFuncion
 
 Funcion MIN <- Minimo(X1, X2)
-	MIN <- X
+	Si X1 < X2
+		MIN <- X1
+	SiNo
+		MIN <- X2
+	FinSi
 FinFuncion
 
 Funcion TA <- TiempoAtencion_Estatico
