@@ -5,6 +5,8 @@ Proceso Main
 	Dimension ITO(N_SERVER)
 	Dimension TC(N_SERVER)
 	
+	PROXIMO_TURNO <- 0
+	
 	Repetir
 			// Avanzo T
 			T <- TPLL
@@ -54,9 +56,18 @@ Funcion Rechaza <- Rechaza_Request(TC)
 	Res <- Rechaza
 FinFuncion
 
-funcion PL <- Puesto_Libre(TPS)
+funcion PL <- Puesto_Libre(TC)
 	// algoritmo round robin
-	PL <- 0
+	ret <- -1
+	i <- PROXIMO_TURNO
+	Mientras ret = -1 Hacer
+		Si TC[i MOD N_SERVER] < TIMEOUT
+			ret <- i
+		FinSi
+		i <- i + 1
+	Fin Mientras
+	
+	PL <- ret
 FinFuncion
 
 Funcion TA <- TiempoAtencion_Estatico
