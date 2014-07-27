@@ -69,7 +69,7 @@ Proceso Main
 	Imprimir "Servidores ", N_SERVER
 	Imprimir "Porc. Rechazados [%]", PORC_REQ_RECHAZADAS
 	PAra i<-0 hasta N_SERVER
-		Imprimir "Porc Tiempo Ocioso Servidor [%]", i, PTO_SERVER //creo que es PTO[i]
+		Imprimir "Porc Tiempo Ocioso Servidor [%]", i, PTO[i]
 	FinPara
 	Imprimir "Promedio Espera [mseg]", PROM_ESPERA
 	Imprimir "Promedio Respuesta [mseg]", PROM_ESPERA
