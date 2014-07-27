@@ -1,63 +1,3 @@
-Proceso Main
-	Leer N_SERVER
-	Leer TIMEOUT
-	
-	Dimension STO(N_SERVER)
-	Dimension TC(N_SERVER)
-	
-	PROXIMO_TURNO <- 0
-	RequestRechazadas <- 0
-	RequestRecibidas <- 0
-	
-	Repetir
-			// Avanzo T
-			T <- TPLL
-			
-			// EFNC
-			IA <- Intervalo_Arribos()
-			TPLL <- T + IA			
-			
-			RequestRecibidas <- RequestRecibidas + 1
-			
-			// Arrepentimiento?
-			Rechaza <- Rechaza_Request(TC, T)
-			
-			Si No Rechaza Entonces
-					
-				libre <- Puesto_Libre(TC, T)
-				Si T > TC[libre]
-					STO[libre] <- STO[libre] + T - TC[libre]
-					TC[libre] <- T //Asumo que despues se va a sumar un TA a TC[i]
-				FinSi
-				
-				Si AZAR(1) < PORC_TIPO_ESTATICO Entonces
-					TC[libre] <- TiempoAtencion_Estatico() + TC[libre]
-				Sino
-					TC[libre] <- TiempoAtencion_Dinamico() + TC[libre]
-				FinSi
-				
-			Sino
-				RequestRechazadas <- RequestRechazadas + 1
-			FinSi
-			
-	Hasta Que T <= TF
-	
-	//Calculo de Resultados
-	
-	T_OCIOSO_TOTAL <- 0
-	Para i <- 0 Hasta N_SERVER Con Paso paso Hacer
-		T_OCIOSO_TOTAL <- STO[i]
-	Fin Para
-	
-	PORC_REQ_RECHAZADAS <- RequestRechazadas * 100 / RequestRecibidas
-	PORC_T_OCIOSO <- (T * N_SERVER) * 100/ T_OCIOSO_TOTAL
-	
-	//Impresion de Resultados
-	Escribir N
-	Escribir PORC_REQ_RECHAZADAS, PORC_T_OCIOSO
-	
-	
-FinProceso
 
 
 // Auxiliares
@@ -66,38 +6,29 @@ Funcion IA <- Intervalo_Arribos()
 	IA <- 0
 FinFuncion
 
-Funcion Rechaza <- Rechaza_Request(TC, T)
-	Res <- TRUE
-	Para i <- 0 Hasta N_SERVER Con Paso paso Hacer
-		Res <- (TC[i] - T >= TIMEOUT) & Rechaza
-	Fin Para
-	Res <- Rechaza
-FinFuncion
-
-funcion PL <- Puesto_Libre(TC, T)
+funcion PL <- Thread_a_asignar(TC)
 	// algoritmo round robin
-	ret <- -1
-	i <- PROXIMO_TURNO
-	Mientras ret = -1 Hacer
-		Si (TC[i MOD N_SERVER] - T) < TIMEOUT
-			ret <- i
-		FinSi
-		i <- i + 1
-	Fin Mientras
+	TURNO <- (TURNO + 1) MOD (N_SERVER * REQ_MAX_SER)
 	
-	PL <- ret
+	PL <- TURNO
 FinFuncion
 
-Funcion TA <- TiempoAtencion_Estatico
-	TA <- exp((-(42766 / (Random() + 35386))) ^ 7.9285)
+Funcion TA <- TiempoAtencion_Estatico()
+	TA <- exp((-(42766 / (Azar(1) + 35386))) ^ 7.9285)
 FinFuncion
 
-Funcion TA <- TiempoAtencion_Dinamico
-	den <- (1 - Random()) ^ 0.7364
+Funcion TA <- TiempoAtencion_Dinamico()
+	den <- (1 - Azar(1)) ^ 0.7364
 	
 	TA <- 30791 * (((1 / den) -1) ^ 0.379)
 FinFuncion
 
-Funcion RET <- Random()
-	RET <- Azar(1000) / 1000
+Funcion PTO <- PorcentajeTiempoOcioso(STO, TF, i)
+	sum_prom_to <- 0
+	Para j<-0 Hasta REQ_MAX_SER
+		sum_prom_to <- STO[(i * REQ_MAX_SER) + j] * 100 / TF
+	Fin Para
+	
+	PTO <- sum_prom_to / REQ_MAX_SER
 FinFuncion
+	
