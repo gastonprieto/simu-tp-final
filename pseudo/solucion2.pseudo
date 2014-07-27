@@ -99,8 +99,19 @@ Funcion SERV <- Servidor_Vacio(menor_salida)
 FinFuncion
 
 funcion PL <- Puesto_Libre(TPS, N) 
-	// algoritmo de prioridades
-	PL <- 0
+	ret <- -1
+	i <- 0
+	
+	Mientras (N * REQ_MAX_SERVER <= i) & ret <> -1 Hacer
+		
+		Si TPS[i]  <> H_V
+			ret <- (i / REQ_MAX_SERVER) // asumiendo que / es div entera
+		FinSi
+		
+		i <- i + 1
+	Fin Mientras
+	
+	PL <- ret
 FinFuncion
 
 Funcion Rechaza <- Rechaza_Request(REQS)
