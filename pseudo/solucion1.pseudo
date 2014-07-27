@@ -1,9 +1,11 @@
 Proceso Main
 	Leer N_SERVER
-	Leer TIMEOUT
 	
-	Dimension ITO(N_SERVER)
-	Dimension TC(N_SERVER)
+	definir  TIMEOUT como entero
+	definir REQ_MAX_SER como entero
+	
+	Dimension STO(N_SERVER * REQ_MAX_SER)
+	Dimension TC(N_SERVER * REQ_MAX_SER)
 	
 	PROXIMO_TURNO <- 0
 	
@@ -15,29 +17,61 @@ Proceso Main
 			IA <- Intervalo_Arribos()
 			TPLL <- T + IA			
 			
-			// Arrepentimiento?
-			Rechaza <- Rechaza_Request(TC)
+			thread <- Thread_a_asignar(TC)
 			
-			Si No Rechaza Entonces
-					
-				libre <- Puesto_Libre(TC)
-				Si T > TC[libre]
-					ITO[libre] <- ITO[libre] + T - TC[libre]
-					TC[libre] <- T //Asumo que despues se va a sumar un TA a TC[i]
-				FinSi
+			si T >= TC[thread] Entonces
+				STO[thread] <- STO[thread] + T - TC[thread]
 				
-				Si AZAR(1) < PORC_TIPO_ESTATICO Entonces
-					TC[libre] <- TiempoAtencion_Estatico() + TC[libre]
+				si azar(1) < PORC_TIPO_ESTATICO entonces
+					TA <- TiempoAtencion_Estatico()
 				Sino
-					TC[libre] <- TiempoAtencion_Dinamico() + TC[libre]
+					TA <- TiempoAtencion_Dinamico()
 				FinSi
+				TC[thread] <- TA + T
+				
+				STR <- STR + TC[thread] - T 
+				REQ_ATENDIDOS <- REQ_ATENDIDOS + 1
+			Sino
+				si TC[thread] - T > TIMEOUT
+					REQ_RECH = REQ_RECH + 1
+				Sino
+					si azar(1) < PORC_TIPO_ESTATICO entonces
+						TA <- TiempoAtencion_Estatico()
+					Sino
+						TA <- TiempoAtencion_Dinamico()
+					FinSi
 					
+					STE <- STE + TC[thread] - T
+					REQ_ESPERA <- REQ_ESPERA + 1
+					
+					TC[thread] <- TA + TC[thread]
+					
+					REQ_ATENDIDOS <- REQ_ATENDIDOS + 1
+					STR <- STR + TC[thread] - T
+				FinSi
 			FinSi
-	Hasta Que T <= TF
+			
+			NT <- NT + 1
+			
+	Mientras Que T <= TF
 	
 	//Calculo de Resultados
+	Dimension PTO(N_SERVER)
+	Para i<-0 Hasta N_SERVER
+		PTO[i] <- PorcentajeTiempoOcioso(STO, TF, i)
+	Fin Para
+	PORC_REQ_RECHAZADAS <- REQ_RECHAZADAS * 100 / NT
+	PROM_ESPERA <- STE / REQ_ESPERA
+	PROM_RESPUESTA <- STE / REQ_ATENDIDOS
 	
 	//Impresion de Resultados
+	Imprimir "Servidores ", N_SERVER
+	Imprimir "Porc. Rechazados [%]", PORC_REQ_RECHAZADAS
+	PAra i<-0 hasta N_SERVER
+		Imprimir "Porc Tiempo Ocioso Servidor [%]", i, PTO_SERVER
+	FinPara
+	Imprimir "Promedio Espera [mseg]", PROM_ESPERA
+	Imprimir "Promedio Respuesta [mseg]", PROM_ESPERA
 	
 FinProceso
 
@@ -56,7 +90,7 @@ Funcion Rechaza <- Rechaza_Request(TC)
 	Res <- Rechaza
 FinFuncion
 
-funcion PL <- Puesto_Libre(TC)
+funcion PL <- Thread_a_asignar(TC)
 	// algoritmo round robin
 	ret <- -1
 	i <- PROXIMO_TURNO
@@ -77,3 +111,8 @@ FinFuncion
 Funcion TA <- TiempoAtencion_Dinamico
 	
 FinFuncion
+
+Funcion PTO <- PorcentajeTiempoOcioso(STO, TF, i)
+	PTO <- 0
+FinFuncion
+	
