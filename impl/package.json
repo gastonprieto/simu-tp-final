@@ -5,7 +5,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^2.2.2",
     "lodash": "^2.4.1",
-    "bluebird": "^2.2.2"
+    "mocha": "^1.21.2"
   }
 }
