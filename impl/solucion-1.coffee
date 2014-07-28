@@ -74,7 +74,7 @@ class Simulation
 
 	printResults: ->
 		timeRounded = Math.round @T
-		console.log "Time: #{timeRounded}"
+		console.log "Time: #{timeRounded / 1000 * 60 * 60 * 24 * 30} months."
 		console.log "Done: #{@DoneRequests}"
 		console.log "Rejected: #{@RejectedRequests}"
 		console.log "Total Arrived: #{@RequestArrived}"
@@ -126,7 +126,7 @@ run = ->
 
 	msInMonth = 1000 * 60 * 60 * 24 * 30
 
-	nThreads = 100
+	nThreads = 2
 	timeOut = 1 * 1000
 	months = 2
 	threads = generateThreads nThreads
