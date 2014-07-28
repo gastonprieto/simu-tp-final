@@ -27,17 +27,17 @@ var log = function(message) {
 /**
  * CONSTANTES
  */
-var REQ_MAX_SER = 1000;
+var REQ_MAX_SER = 100;
 var PORC_TIPO_ESTATICO = 0.8;
-var TF = 10;
+var TF = 1000 * 60 * 60 * 24 * 30 * 24;
 var HV = Number.MAX_VALUE;
 var COSTO_EQUIPO = 100;
 var COSTO_ENCENDIDO = 100;
 
-rl.question('Numero de servidores minimos?', function(n_min) {
-  rl.question('Numero servidores maximos?', function(n_max) {
-    rl.question('Numero maximo de request esperando para prender un equipo', function(max_espera) {
-      run(n_min, n_max, max_espera);
+rl.question('Numero de servidores minimos? ', function(n_min) {
+  rl.question('Numero servidores maximos? ', function(n_max) {
+    rl.question('Numero maximo de request esperando para prender un equipo? ', function(max_espera) {
+      run(parseInt(n_min), parseInt(n_max), parseInt(max_espera));
     });
   });
 });
@@ -82,12 +82,15 @@ var run = function(minimo_servidores, maximo_servidores, req_max_esperando) {
       if (!rechaza) {
         // actualizacion vector de estado
         reqs = reqs + 1;
+        //console.log('[REQS] ' + reqs );
 
-        var req_esperando = reqs - reqs_atendiendose(tps, n);
+        var req_esperando = reqs - reqs_atendiendose(tps, n) - 1;
+        //console.log('[REQS_ESPERANDO] ' + req_esperando );
 
-        if (req_esperando > req_max_esperando) {
+        if (req_esperando === req_max_esperando) {
           if (n < maximo_servidores) {
             n = n + 1;
+            console.log('prendiendo un equipo... ' + n);
 
             // EFC
             for (i = 0; i < Math.min(req_esperando, REQ_MAX_SER); i++) {
@@ -133,6 +136,7 @@ var run = function(minimo_servidores, maximo_servidores, req_max_esperando) {
       reqs = reqs - 1;
       if (servidor_vacio(menor_salida, tps, n)) {
         n = n - 1;
+        console.log('apagando un equipo... ' + n);
         tiempo_acumulado_servidor[numero_equipo(menor_salida)] = t - tiempo_encendido_servidor(numero_equipo(menor_salida));
       }
 
@@ -167,6 +171,7 @@ var run = function(minimo_servidores, maximo_servidores, req_max_esperando) {
   log(sum_llegadas);
   log(sta);
 
+  console.log('\n====================================================');
   console.log("Cantidad minima servidores " + minimo_servidores);
   console.log("Cantidad maxima servidores " + maximo_servidores);
   console.log("Cantidad reqs esperando maxima para prender un equipo " + req_max_esperando);
@@ -208,7 +213,7 @@ var tiempo_atencion_estatico = function() {
   if (isNaN(y) || y < 0) {
     throw new Error(y);
   }
-  return y;
+  return y + 15000;
 };
 
 var tiempo_atencion_dinamico = function() {
@@ -218,7 +223,7 @@ var tiempo_atencion_dinamico = function() {
   if (isNaN(y) || y < 0) {
     throw new Error(y);
   }
-  return y + 10000;
+  return y + 40000;
 };
 
 var demora_encendido = function() {
