@@ -7,7 +7,7 @@ Proceso Main
 	N <- N_SERVER_MIN
 	PORC_TIPO_ESTATICO <- 0.8
 	T <- 0
-	MAX_ESPERA <- 100
+	COSTO_TIEMPO_MS <- 250 / ms_mes()
 	Dimension TPS(REQ_MAX_SERVER * N_SERVER_MAX)
 	
 	Repetir
@@ -34,9 +34,9 @@ Proceso Main
 				// Actualizo el vector de estado
 				REQS <- REQS + 1
 				
-				ReqEsperando <- REQS - Requests_Atendiendose(TPS, N)
+				ReqEsperando <- REQS - Requests_Atendiendose(TPS, N) - 1
 				
-				si ReqEsperando > MAX_ESPERA Entonces
+				si ReqEsperando = MAX_ESPERA Entonces
 					
 					si N < N_MAX_SERVIDOR Entonces
 						//Actualizo vector de estado
@@ -109,7 +109,7 @@ Proceso Main
 	//Calculo de Resultados
 	
 	Para i <- 0 Hasta N_MAX_SERVER
-		Costo_Tiempo = Costo_Tiempo + TiempoAcumuladoServidor[i]/3600 * COSTO_TIEMPO
+		Costo_Tiempo = Costo_Tiempo + TiempoAcumuladoServidor[i] * COSTO_TIEMPO_MS
 	FinPara
 	
 	CostoTotal <- (CantidadEncendidos * COSTO_ENCENDIDO) + Costo_Tiempo
@@ -117,7 +117,7 @@ Proceso Main
 	TiempoEsperaTotal <- SumSalidas - SumLlegadas
 	
 	
-	PROM_COSTO <- CostoTotal / (TF/(60*60*24*30))
+	PROM_COSTO <- CostoTotal / (TF/ ms_mes())
 	PORC_REQ_RECHAZADAS <- RequestRechazadas * 100 / RequestRecibidas
 	PROM_ESPERA <- (TiempoEsperaTotal - STA) / (RequestRecibidas - RequestRechazadas)
 	PROM_RESPUESTA <- (TiempoEsperaTotal - STA) / (RequestRecibidas - RequestRechazadas)
@@ -126,6 +126,10 @@ Proceso Main
 	Mostrar N, N_MIN_SERVER, N_MAX_SERVER
 	Mostrar PROM_COSTO, PORC_REQ_RECHAZADAS, PROM_ESPERA, PROM_RESPUESTA
 FinProceso
+
+Funcion MS <- ms_mes()
+	MS <- 1000 * 60 * 60 * 24 * 30
+FinFuncion
 
 Funcion SERV <- Servidor_Vacio(socket, TPS)
 	servidor <- socket / REQ_MAX_SERVER // division entera
@@ -202,7 +206,7 @@ Funcion TA <- TiempoAtencion_Dinamico
 FinFuncion
 
 Funcion DE <- DemoraEncendido()
-	DE <- 0
+	DE <- 20 * 1000
 FinFuncion
 
 Funcion SERV <- ObtenerServidor(libre)
