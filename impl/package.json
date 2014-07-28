@@ -1,0 +1,11 @@
+{
+  "name": "simu-solucion-1",
+  "version": "0.0.0",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "bluebird": "^2.2.2"
+  }
+}
