@@ -70,11 +70,12 @@ class Simulation
 		x = Math.random()
 		y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182)
 		throw new Error(y)  if isNaN(y) or y < 0
-		return y
+		concurrency = 10
+		return y / concurrency
 
 	printResults: ->
 		timeRounded = Math.round @T
-		console.log "Time: #{timeRounded / 1000 * 60 * 60 * 24 * 30} months."
+		console.log "Time: #{timeRounded / (1000 * 60 * 60 * 24 * 30)} months."
 		console.log "Done: #{@DoneRequests}"
 		console.log "Rejected: #{@RejectedRequests}"
 		console.log "Total Arrived: #{@RequestArrived}"
@@ -111,7 +112,7 @@ class Thread
 			@WaitingToBeginProcess += @CommiedTime - simulation.T
 
 		@CommiedTime += simulation.getAssistanceTime()
-		@TimeToRespond = @CommiedTime - simulation.T
+		@TimeToRespond += @CommiedTime - simulation.T
 
 	addIdleTime: (quantity) ->
 		@IdleTime += quantity
@@ -126,9 +127,9 @@ run = ->
 
 	msInMonth = 1000 * 60 * 60 * 24 * 30
 
-	nThreads = 2
-	timeOut = 1 * 1000
-	months = 2
+	nThreads = 300
+	timeOut = 20 * 1000
+	months = 1
 	threads = generateThreads nThreads
 	simulation = new Simulation threads, 0.8, timeOut
 	for i in [1..months]
