@@ -2,8 +2,10 @@
 
 _ = require 'lodash'
 
+exeded = 0
+
 class Simulation
-	constructor: (@Threads, @StaticTimeIndex)->
+	constructor: (@Threads, @StaticTimeIndex, @TimeOut)->
 		@T = 0
 		@DoneRequests = 0
 		@RequestArrived = 0
@@ -12,12 +14,12 @@ class Simulation
 		@TotalThreads = @Threads.length
 		@CurrentThreadIndex = 0
 
-	run: (FinalTime, TimeOut)->
+	run: (FinalTime)->
 		TPLL = 0
 		while @T < FinalTime
 			@RequestArrived += 1
 			assignedThread = @assignThread()
-			if assignedThread.commitedTimeFrom(@T) > TimeOut #Reject Request
+			if assignedThread.commitedTimeFrom(@T) > @TimeOut #Reject Request
 				@RejectedRequests += 1
 			else #Accept request
 				@executeRequest assignedThread
@@ -51,11 +53,17 @@ class Simulation
 		else
 			return dynamicAttention()
 
+
 	getArrivalTime: ->
+		while (res = @_getArrivalTime()) > 80 * 1000 * 1000
+			exeded += 1
+			#console.log "EXEDED: #{exeded} with value #{res / 1000 * 60 * 60} hours."
+		res
+
+	_getArrivalTime: ->
 		x = Math.random()
 		y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182)
 		throw new Error(y)  if isNaN(y) or y < 0
-		#console.log "ARRIVAL TIME:   " + y + "" if y > 56000
 		return y
 
 	printResults: ->
@@ -65,7 +73,22 @@ class Simulation
 		console.log "Rejected: #{@RejectedRequests}"
 		console.log "Total Arrived: #{@RequestArrived}"
 
-		console.log "Porc Rejecteds: #{@RejectedRequests * 100 / @RequestArrived} %"
+		console.log "\nPorc Rejecteds: #{@RejectedRequests * 100 / @RequestArrived} %"
+		console.log "Porc Idle: #{@_porcIdleTime()} %"
+		console.log "Waiting Averange: #{@_waitingAverange()}"
+		console.log "Time To Respond Averange: #{@_TimeToRespondAverange()}"
+
+	_porcIdleTime: ->
+		total = _.reduce @Threads,((res, val) => res + val.IdleTime), 0
+		total * 100 / (@Threads.length * @T)
+
+	_waitingAverange: ->
+		total = _.reduce @Threads, ((res, val) => res + val.WaitingToBeginProcess), 0
+		total / @DoneRequests
+
+	_TimeToRespondAverange: ->
+		total = _.reduce @Threads, ((res, val) => res + val.TimeToRespond), 0
+		total / @DoneRequests
 
 class Thread
 	constructor: ->
@@ -77,7 +100,7 @@ class Thread
 	executeRequest: (simulation) ->
 		if simulation.T >= @CommiedTime #Idle thread
 			@addIdleTime(simulation.T - @CommiedTime)
-			@CommiedTime = simulation.T
+			@CommiedTime = simulation.T #The request process start now
 		else #Commited thread
 			@WaitingToBeginProcess += @CommiedTime - simulation.T
 
@@ -97,12 +120,17 @@ run = ->
 
 	msInMonth = 1000 * 60 * 60 * 24 * 30
 
-	nThreads = 200
-	timeOut = 50 * 1000
-	threads = generateThreads(nThreads)
-	simulation = new Simulation threads, 0.8
-	simulation.run 12 * msInMonth, timeOut
+	nThreads = 300
+	timeOut = 10 * 1000
+	years = 2
+	threads = generateThreads nThreads
+	simulation = new Simulation threads, 0.8, timeOut
+	for i in [1..years]
+		simulation.run i * 12 * msInMonth
+		console.log "Year #{i} of #{years}completed. And Time is #{simulation.T / msInMonth}."
+
 	simulation.printResults()
+	console.log exeded
 	#console.log simulation
 
 run()
