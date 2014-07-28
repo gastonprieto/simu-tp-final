@@ -8,6 +8,10 @@ var rl = readline.createInterface({
   output: process.stdout
 });
 
+var ms_mes = function() {
+  return 1000 * 60 * 60 * 24 * 30;
+};
+
 var salir = function() {
   process.exit(0);
 };
@@ -24,15 +28,107 @@ var log = function(message) {
   //console.log(message);
 };
 
+var menor_tps = function(tps, n) {
+  var min_index = 0;
+  _(tps)
+    .take(n * REQ_MAX_SER)
+    .forEach(function(value, index) {
+      if (value < tps[min_index]) {
+        min_index = index;
+      }
+    });
+  return min_index;
+};
+
+var intervalo_arribos = function() {
+  var x = Math.random();
+  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
+
+  if (isNaN(y) || y < 0) {
+    throw new Error(y);
+  }
+  return y;
+};
+
+var tiempo_atencion_estatico = function() {
+  var x = Math.random();
+  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
+
+  if (isNaN(y) || y < 0) {
+    throw new Error(y);
+  }
+  return y + 15000;
+};
+
+var tiempo_atencion_dinamico = function() {
+  var x = Math.random();
+  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
+
+  if (isNaN(y) || y < 0) {
+    throw new Error(y);
+  }
+  return y + 40000;
+};
+
+var demora_encendido = function() {
+  var x = Math.random();
+  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
+
+  if (isNaN(y) || y < 0) {
+    throw new Error(y);
+  }
+  return y + 20000;
+};
+
+var servidor_vacio = function(menor_salida, tps, n) {
+  var equipo = numero_equipo(menor_salida);
+  _(tps)
+    .rest(equipo * REQ_MAX_SER)
+    .take(REQ_MAX_SER)
+    .every(function(e) {
+      return e === HV;
+    });
+};
+
+var numero_equipo = function(thread) {
+  return Math.floor(thread / REQ_MAX_SER);
+};
+
+var rechaza_request = function(reqs, tps, n, req_max_esperando) {
+  return reqs - reqs_atendiendose(tps, n) > req_max_esperando;
+};
+
+var puesto_libre = function(tps, n) {
+  return _(tps)
+    .take(n * REQ_MAX_SER)
+    .findIndex(function(value) {
+      return value === HV;
+    });
+};
+
+var reqs_atendiendose = function(tps, n) {
+  return _(tps)
+    .take(n * REQ_MAX_SER)
+    .filter(function(x) {
+      return x !== HV;
+    })
+    .value()
+    .length;
+};
+
+var alguien_pendiente = function(tps, n) {
+  return reqs_atendiendose(tps, n) !== 0;
+};
+
 /**
  * CONSTANTES
  */
 var REQ_MAX_SER = 100;
 var PORC_TIPO_ESTATICO = 0.8;
-var TF = 1000 * 60 * 60 * 24 * 30 * 24;
+var TF = 1000 * ms_mes();
 var HV = Number.MAX_VALUE;
-var COSTO_EQUIPO = 100;
-var COSTO_ENCENDIDO = 100;
+var COSTO_EQUIPO = 250 / ms_mes();
+var COSTO_ENCENDIDO = 1;
 
 rl.question('Numero de servidores minimos? ', function(n_min) {
   rl.question('Numero servidores maximos? ', function(n_max) {
@@ -158,11 +254,11 @@ var run = function(minimo_servidores, maximo_servidores, req_max_esperando) {
 
   var costo_tiempo = 0;
   for (i = 0; i < maximo_servidores; i++) {
-    costo_tiempo = costo_tiempo + tiempo_acumulado_servidor[i] / 3600 * COSTO_EQUIPO;
+    costo_tiempo = costo_tiempo + tiempo_acumulado_servidor[i] * COSTO_EQUIPO;
   }
   var costo_total = (cantidad_encendidos * COSTO_ENCENDIDO) + costo_tiempo;
 
-  var prom_costo = costo_total / (TF / (60 * 60 * 24 * 30));
+  var prom_costo = costo_total / (TF/ms_mes());
   var porc_req_rechazadas = request_rechazadas * 100 / request_recibidas;
   var prom_espera = (sum_salidas - sum_llegadas - sta) / (request_recibidas - request_rechazadas);
   var prom_respuesta = (sum_salidas - sum_llegadas) / (request_recibidas - request_rechazadas);
@@ -184,94 +280,3 @@ var run = function(minimo_servidores, maximo_servidores, req_max_esperando) {
   salir();
 };
 
-var menor_tps = function(tps, n) {
-  var min_index = 0;
-  _(tps)
-    .take(n * REQ_MAX_SER)
-    .forEach(function(value, index) {
-      if (value < tps[min_index]) {
-        min_index = index;
-      }
-    });
-  return min_index;
-};
-
-var intervalo_arribos = function() {
-  var x = Math.random();
-  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
-
-  if (isNaN(y) || y < 0) {
-    throw new Error(y);
-  }
-  return y;
-};
-
-var tiempo_atencion_estatico = function() {
-  var x = Math.random();
-  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
-
-  if (isNaN(y) || y < 0) {
-    throw new Error(y);
-  }
-  return y + 15000;
-};
-
-var tiempo_atencion_dinamico = function() {
-  var x = Math.random();
-  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
-
-  if (isNaN(y) || y < 0) {
-    throw new Error(y);
-  }
-  return y + 40000;
-};
-
-var demora_encendido = function() {
-  var x = Math.random();
-  var y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182);
-
-  if (isNaN(y) || y < 0) {
-    throw new Error(y);
-  }
-  return y + 20000;
-};
-
-var servidor_vacio = function(menor_salida, tps, n) {
-  var equipo = numero_equipo(menor_salida);
-  _(tps)
-    .rest(equipo * REQ_MAX_SER)
-    .take(REQ_MAX_SER)
-    .every(function(e) {
-      return e === HV;
-    });
-};
-
-var numero_equipo = function(thread) {
-  return Math.floor(thread / REQ_MAX_SER);
-};
-
-var rechaza_request = function(reqs, tps, n, req_max_esperando) {
-  return reqs - reqs_atendiendose(tps, n) > req_max_esperando;
-};
-
-var puesto_libre = function(tps, n) {
-  return _(tps)
-    .take(n * REQ_MAX_SER)
-    .findIndex(function(value) {
-      return value === HV;
-    });
-};
-
-var reqs_atendiendose = function(tps, n) {
-  return _(tps)
-    .take(n * REQ_MAX_SER)
-    .filter(function(x) {
-      return x !== HV;
-    })
-    .value()
-    .length;
-};
-
-var alguien_pendiente = function(tps, n) {
-  return reqs_atendiendose(tps, n) !== 0;
-};
