@@ -84,7 +84,7 @@ Proceso Main
 			
 			// Actualizacion vector de estado
 			REQS <- REQS - 1
-			Si Servidor_Vacio(menor_salida, TPS) Entonces
+			Si Servidor_Vacio(menor_salida, TPS) y ObtenerServidor(menor_salida) > N_SERVER_MIN Entonces
 				N <- N - 1
 				TiempoAcumuladoServidor[menor_salida] <- T - TiempoEncendidoServidor[menor_salida]
 			FinSi
