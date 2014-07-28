@@ -3,6 +3,7 @@
 _ = require 'lodash'
 
 exeded = 0
+assistanceExeded = 0
 
 class Simulation
 	constructor: (@Threads, @StaticTimeIndex, @TimeOut)->
@@ -36,6 +37,11 @@ class Simulation
 		@Threads[@CurrentThreadIndex % @TotalThreads]
 
 	getAssistanceTime: ->
+		while (res = @_getAssistanceTime()) > @TimeOut
+			assistanceExeded += 1
+		res	
+
+	_getAssistanceTime: ->
 		staticAttention = ->
 			x = Math.random()
 			y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182)
@@ -55,7 +61,7 @@ class Simulation
 
 
 	getArrivalTime: ->
-		while (res = @_getArrivalTime()) > 80 * 1000 * 1000
+		while (res = @_getArrivalTime()) > 8 * 1000 * 1000
 			exeded += 1
 			#console.log "EXEDED: #{exeded} with value #{res / 1000 * 60 * 60} hours."
 		res
@@ -120,17 +126,18 @@ run = ->
 
 	msInMonth = 1000 * 60 * 60 * 24 * 30
 
-	nThreads = 300
-	timeOut = 10 * 1000
-	years = 2
+	nThreads = 100
+	timeOut = 1 * 1000
+	months = 2
 	threads = generateThreads nThreads
 	simulation = new Simulation threads, 0.8, timeOut
-	for i in [1..years]
-		simulation.run i * 12 * msInMonth
-		console.log "Year #{i} of #{years}completed. And Time is #{simulation.T / msInMonth}."
+	for i in [1..months]
+		simulation.run i * msInMonth
+		console.log "Month #{i} of #{months}completed. And Time is #{simulation.T / msInMonth} months."
 
 	simulation.printResults()
-	console.log exeded
+	console.log "ARRIVAL EXEDEDS: #{exeded}"
+	console.log "ASSISTANCE EXEDEDS: #{assistanceExeded}"
 	#console.log simulation
 
 run()
