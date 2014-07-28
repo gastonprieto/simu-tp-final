@@ -24,7 +24,6 @@ class Simulation
 
 			arrivalTime = @getArrivalTime()
 			@T += arrivalTime
-			#console.log "---- Current Time:   " + @T + "     Arrival Time:    " + arrivalTime
 
 	executeRequest: (thread) ->
 		@DoneRequests += 1
@@ -39,14 +38,12 @@ class Simulation
 			x = Math.random()
 			y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182)
 			throw new Error(y)  if isNaN(y) or y < 0
-			#console.log "STATIC:   " + y
 			return y
 
 		dynamicAttention = ->
 			x = Math.random()
 			y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182)
 			throw new Error(y)  if isNaN(y) or y < 0
-			#console.log "DYNAMIC:   " + (y + 1000)
 			return y + 10000
 
 		if Math.random() < @StaticTimeIndex
@@ -58,7 +55,7 @@ class Simulation
 		x = Math.random()
 		y = Math.pow(1 / Math.pow(x, 3.07759) - 1, 0.51182)
 		throw new Error(y)  if isNaN(y) or y < 0
-		console.log "ARRIVAL TIME:   " + y + "" if y > 56000
+		#console.log "ARRIVAL TIME:   " + y + "" if y > 56000
 		return y
 
 	printResults: ->
@@ -94,15 +91,18 @@ class Thread
 		@CommiedTime - time
 
 run = ->
-	generateThreads = ->
-		for i in [1..100]
+	generateThreads = (nThreads)->
+		for i in [1..nThreads]
 			new Thread()
 
 	msInMonth = 1000 * 60 * 60 * 24 * 30
 
-	threads = generateThreads()
-	simulation = new Simulation threads, 0.6
-	simulation.run 12 * msInMonth, 100000
+	nThreads = 200
+	timeOut = 50 * 1000
+	threads = generateThreads(nThreads)
+	simulation = new Simulation threads, 0.8
+	simulation.run 12 * msInMonth, timeOut
 	simulation.printResults()
+	#console.log simulation
 
 run()
